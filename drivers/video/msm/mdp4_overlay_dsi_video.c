@@ -322,7 +322,6 @@ void mdp4_dsi_video_3d_sbys(struct msm_fb_data_type *mfd,
 {
 	struct fb_info *fbi;
 	struct mdp4_overlay_pipe *pipe;
-
 	int bpp;
 	uint8 *buf = NULL;
 

@@ -468,6 +468,7 @@ static inline int mdp4_overlay_dtv_unset(struct msm_fb_data_type *mfd,
 {
 	return 0;
 }
+
 static inline void mdp4_dma_e_done_dtv(void)
 {
     /* empty */
