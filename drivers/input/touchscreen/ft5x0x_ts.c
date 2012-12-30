@@ -3,13 +3,6 @@
  *
 */
 
-/*
-=======================================================================================================
-When		Who	What,Where,Why		Comment			Tag
-2011-04-20	zfj	add virtual key for P732A			ZFJ_TS_ZFJ_20110420     
-2011-03-02	zfj	use create_singlethread_workqueue instead 	ZTE_TS_ZFJ_20110302 
-2011-01-08	zfj	Create file			
-*/
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/delay.h>
@@ -37,13 +30,11 @@ When		Who	What,Where,Why		Comment			Tag
 #define GPIO_TOUCH_EN_OUT  31
 #endif
 
-/*ZTE_TS_ZFJ_20110215 begin*/
 #if defined(CONFIG_MACH_TURIES)
 #define GPIO_TOUCH_INT_WAKEUP	18
 #else
 #define GPIO_TOUCH_INT_WAKEUP	29
 #endif
-/*ZTE_TS_ZFJ_20110215 end*/
 
 #define ABS_SINGLE_TAP	0x21	/* Major axis of touching ellipse */
 #define ABS_TAP_HOLD	0x22	/* Minor axis (omit if circular) */
@@ -58,15 +49,12 @@ When		Who	What,Where,Why		Comment			Tag
 #if defined (CONFIG_MACH_RACER2)
 static const char ts_keys_size[] = "0x01:217:40:340:60:34:0x01:139:120:340:60:34:0x01:158:200:340:60:34";
 #else
-//static const char ts_keys_size[] = "0x01:139:40:920:60:40:0x01:102:165:920:60:40:0x01:158:280:920:60:40:0x01:217:440:920:60:40";
 static const char ts_keys_size[] = "0x01:139:30:520:50:80:0x01:102:110:520:60:80:0x01:158:200:520:60:80:0x01:217:300:520:60:80";
-//static const char ts_keys_size[] = "0x01:139:40:115:80:54:0x01:102:180:115:80:54:0x01:158:300:115:80:54:0x01:217:440:115:80:54";
 #endif
 static ssize_t virtualkeys_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	sprintf(buf,"%s\n",ts_keys_size);
-//	pr_info("%s\n",__FUNCTION__);
     return strlen(ts_keys_size)+2;
 }
 static DEVICE_ATTR(virtualkeys, 0444, virtualkeys_show, NULL);
@@ -84,7 +72,7 @@ static int ts_key_report_init(void)
 			return ret;
 		}
 	}
- 
+
 	ret = sysfs_create_file(virtual_key_kobj, &dev_attr_virtualkeys.attr);
 	if (ret) {
 		pr_err("%s: sysfs_create_file failed\n", __func__);
@@ -125,7 +113,7 @@ static u8 fwVer=0;//ZTE_TS_XYM_20110830
 static struct i2c_client *update_client;
 static int update_result_flag=0;
 #endif
-static int Fts_i2c_read(struct i2c_client *client, uint8_t reg, u8 * buf, int count) 
+static int Fts_i2c_read(struct i2c_client *client, uint8_t reg, u8 * buf, int count)
 {
 	int ret;
 	struct i2c_msg msg[] = {
@@ -527,24 +515,21 @@ static void Fts_ts_work_func(struct work_struct *work)
 	else
 	{
 		//printk("Fts Touch Event: P1=%x,P2=%x,Points=%x\n",buf[3] ,buf[9],buf[2] );
-		x = (uint16_t)((buf[3] & 0x0F)<<8 )| (uint16_t)buf[4];	
+		x = (uint16_t)((buf[3] & 0x0F)<<8 )| (uint16_t)buf[4];
 		y = (uint16_t)((buf[5] & 0x0F)<<8) | (uint16_t)buf[6];
-		//pressure = ( (buf[3] & 0xF0) == 0x40 )?0:200;
-		//w = 10;
 		pressure = buf[7];
 		w = buf[8];
 		z = 1;
 		finger = (buf[5] & 0xF0)>>4;
-		
-		x2 = (uint16_t)((buf[9] & 0x0F)<<8) | (uint16_t)buf[10];			
-		y2 = (uint16_t)((buf[11] & 0x0F)<<8) | (uint16_t)buf[12];		
-		//pressure2 = ( (buf[9] & 0xF0) == 0x40 )?0:200;
-		//w2 = 10;
+
+		x2 = (uint16_t)((buf[9] & 0x0F)<<8) | (uint16_t)buf[10];
+		y2 = (uint16_t)((buf[11] & 0x0F)<<8) | (uint16_t)buf[12];
 		pressure2 = buf[13];
-		w2 = buf[14]; 
+		w2 = buf[14];
 		z2 = 1;
 		finger2 = (buf[2] & 0x07)>1?1:0;
 
+                input_report_key(ts->input_dev, BTN_TOUCH, 1);
 		input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, pressure);
 		input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, 10);
 		input_report_abs(ts->input_dev, ABS_MT_POSITION_X, x);
@@ -559,7 +544,6 @@ static void Fts_ts_work_func(struct work_struct *work)
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, y2);
 			input_mt_sync(ts->input_dev);
 		}
-			
 		input_sync(ts->input_dev);
 	}
 	if (ts->use_irq)
@@ -643,20 +627,19 @@ static int Fts_ts_probe(
 {
 	struct Fts_ts_data *ts;
 	int ret = 0;
-	//u8 fwVer;
 	struct proc_dir_entry *dir, *refresh;
 	int xres, yres;	// lcd xy resolusion
-	
+
 	ret = gpio_request(GPIO_TOUCH_EN_OUT, "touch voltage");
 	if (ret)
-	{	
+	{
 		printk("gpio 31 request is error!\n");
 		goto err_check_functionality_failed;
-	}   
+	}
 
 	gpio_direction_output(GPIO_TOUCH_EN_OUT, 1);
 	msleep(250);
-	
+
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
 	{
 		printk(KERN_ERR "Fts_ts_probe: need I2C_FUNC_I2C\n");
@@ -686,7 +669,6 @@ static int Fts_ts_probe(
 #endif
 	i2c_set_clientdata(client, ts);
 	client->driver = &Fts_ts_driver;
-	
 	{
 		int retry = 3;
 		while (retry-- > 0)
@@ -697,48 +679,23 @@ static int Fts_ts_probe(
 				break;
 			msleep(10);
 		}
-		
-		/*ZTE_TOUCH_WLY_005,@2009-12-19,begin*/
 		if (retry < 0)
 		{
 			ret = -1;
 			goto err_detect_failed;
 		}
-		/*ZTE_TOUCH_WLY_005,@2009-12-19,begin*/
 	}
-	
 	ts->input_dev = input_allocate_device();
 	if (ts->input_dev == NULL) {
 		ret = -ENOMEM;
 		printk(KERN_ERR "Fts_ts_probe: Failed to allocate input device\n");
 		goto err_input_dev_alloc_failed;
 	}
-	
+
 	ts->input_dev->name = "Fts-touchscreen";
-	//ts->input_dev->phys = "Fts-touchscreen/input0";
 
 	get_screeninfo( &xres, &yres );
-	
-	#if 0
-	set_bit(EV_SYN, ts->input_dev->evbit);
-	set_bit(EV_KEY, ts->input_dev->evbit);
-	set_bit(BTN_TOUCH, ts->input_dev->keybit);
-	set_bit(EV_ABS, ts->input_dev->evbit);
-	set_bit(ABS_EARLY_TAP, ts->input_dev->absbit);
-	set_bit(ABS_FLICK, ts->input_dev->absbit);
-	set_bit(ABS_PRESS, ts->input_dev->absbit);
-	set_bit(ABS_PINCH, ts->input_dev->absbit);
-	set_bit(ABS_MT_TOUCH_MAJOR, ts->input_dev->absbit);
-	set_bit(ABS_MT_POSITION_X, ts->input_dev->absbit);
-	set_bit(ABS_MT_POSITION_Y, ts->input_dev->absbit);
-	set_bit(ABS_MT_WIDTH_MAJOR, ts->input_dev->absbit);
-	/*ZFJ_TS_ZFJ_20110420   begin*/  
-	set_bit(KEY_MENU, ts->input_dev->keybit);
-	set_bit(KEY_BACK, ts->input_dev->keybit);
-	set_bit(KEY_HOME, ts->input_dev->keybit);
-	set_bit(KEY_SEARCH, ts->input_dev->keybit);
-	/*ZFJ_TS_ZFJ_20110420   end*/   
-#endif	
+
 	set_bit(EV_SYN, ts->input_dev->evbit);
 	set_bit(EV_KEY, ts->input_dev->evbit);
 	set_bit(BTN_TOUCH, ts->input_dev->keybit);
@@ -750,7 +707,7 @@ static int Fts_ts_probe(
 	set_bit(KEY_MENU, ts->input_dev->keybit);
 	set_bit(KEY_BACK, ts->input_dev->keybit);
 	set_bit(KEY_SEARCH, ts->input_dev->keybit);
-	
+
 	input_set_abs_params(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_X, 0, xres, 0, 0);
 	input_set_abs_params(ts->input_dev, ABS_MT_POSITION_Y, 0, yres, 0, 0);
