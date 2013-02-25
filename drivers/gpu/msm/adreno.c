@@ -1112,7 +1112,7 @@ void adreno_regwrite(struct kgsl_device *device, unsigned int offsetwords,
 	__raw_writel(value, reg);
 }
 
-static void adreno_next_event(struct kgsl_device *device,
+static int adreno_next_event(struct kgsl_device *device,
 	struct kgsl_event *event)
 {
 	int status;
@@ -1157,6 +1157,7 @@ static void adreno_next_event(struct kgsl_device *device,
 					KGSL_CMD_FLAGS_NONE, &cmds[0], 2);
 		}
 	}
+	return status;
 }
 
 static int kgsl_check_interrupt_timestamp(struct kgsl_device *device,
