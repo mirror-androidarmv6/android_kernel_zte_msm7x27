@@ -131,8 +131,10 @@ extern struct atmel_i2c_platform_data atmel_data;
 
 #ifdef CONFIG_ARCH_MSM7X27
 #define MSM_PMEM_MDP_SIZE	0x1B76000
-#define MSM_PMEM_ADSP_SIZE	0xAE4000
-#define MSM_PMEM_AUDIO_SIZE	0x5B000
+#define MSM_PMEM_ADSP_SIZE	0xB71000
+#ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
+#define MSM_FB_SIZE		0x234000
+#else
 #define MSM_FB_SIZE		0x177000
 #define MSM_GPU_PHYS_SIZE	SZ_2M
 #define PMEM_KERNEL_EBI1_SIZE	0x1C000
