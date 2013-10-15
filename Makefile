@@ -1,8 +1,8 @@
 VERSION = 2
 PATCHLEVEL = 6
-SUBLEVEL = 35
-EXTRAVERSION = .7
-NAME = Yokohama
+SUBLEVEL = 36
+EXTRAVERSION = .1
+NAME = Flesh-Eating Bats with Fangs
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
@@ -351,7 +351,7 @@ KBUILD_CPPFLAGS := -D__KERNEL__
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
-		   -Werror-implicit-function-declaration \
+		   -Wno-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks 
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -1506,5 +1506,9 @@ FORCE:
 
 # Declare the contents of the .PHONY variable as phony.  We keep that
 # information in a variable so we can use it in if_changed and friends.
+<<<<<<< HEAD
 .PHONY: $(PHONY)
 
+=======
+.PHONY: $(PHONY)
+>>>>>>> a788aea... Linux 2.6.36.1

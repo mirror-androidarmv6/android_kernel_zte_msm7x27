@@ -564,6 +564,7 @@ static atomic_t vmap_lazy_nr = ATOMIC_INIT(0);
 /* for per-CPU blocks */
 static void purge_fragmented_blocks_allcpus(void);
 
+
 /*
  * Purges all lazily-freed vmap areas.
  *
