@@ -2,6 +2,8 @@
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.35.7
 # Tue Sep 27 13:36:23 2011
+=======
+# Wed Dec 11 13:39:48 2013
 #
 CONFIG_ARM=y
 CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -46,6 +48,7 @@ CONFIG_HAVE_KERNEL_XZ=y
 # CONFIG_KERNEL_BZIP2 is not set
 # CONFIG_KERNEL_LZMA is not set
 CONFIG_KERNEL_XZ=y
+# CONFIG_KERNEL_LZO is not set
 CONFIG_SWAP=y
 CONFIG_SYSVIPC=y
 CONFIG_SYSVIPC_SYSCTL=y
@@ -497,6 +500,7 @@ CONFIG_CMDLINE="init=/sbin/init root=/dev/ram rw initrd=0x11000000,16M console=t
 # CONFIG_CMDLINE_FORCE is not set
 # CONFIG_XIP_KERNEL is not set
 # CONFIG_KEXEC is not set
+# CONFIG_AUTO_ZRELADDR is not set
 
 #
 # CPU Power Management
@@ -2380,6 +2384,8 @@ CONFIG_ZLIB_INFLATE=y
 CONFIG_ZLIB_DEFLATE=y
 CONFIG_LZO_COMPRESS=y
 CONFIG_LZO_DECOMPRESS=y
+# CONFIG_XZ_DEC is not set
+# CONFIG_XZ_DEC_BCJ is not set
 CONFIG_DECOMPRESS_GZIP=y
 CONFIG_XZ_DEC=y
 # CONFIG_XZ_DEC_X86 is not set
