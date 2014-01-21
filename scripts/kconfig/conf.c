@@ -614,9 +614,6 @@ int main(int ac, char **av)
 /*
 * Helper function to facilitate fgets() by Jean Sacren.
 */
-=======
- * Helper function to facilitate fgets() by Jean Sacren.
- */
 void xfgets(str, size, in)
 	char *str;
 	int size;
