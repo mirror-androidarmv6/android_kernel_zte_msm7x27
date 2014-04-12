@@ -18,9 +18,16 @@
 
 unsigned int __machine_arch_type;
 
+#define _LINUX_STRING_H_
+
 #include <linux/compiler.h>	/* for inline */
-#include <linux/types.h>
+#include <linux/types.h>	/* for size_t */
+#include <linux/stddef.h>	/* for NULL */
 #include <linux/linkage.h>
+#include <asm/string.h>
+
+#include <asm/unaligned.h>
+
 
 static void putstr(const char *ptr);
 extern void error(char *x);
@@ -106,13 +113,97 @@ static void putstr(const char *ptr)
 	flush();
 }
 
+
+#ifdef CONFIG_KERNEL_BZIP2
+#define __ptr_t void *
 /*
- * gzip declarations
+ * Optimised C version of memzero for the ARM.
+ */
+void __memzero (__ptr_t s, size_t n)
+{
+	union { void *vp; unsigned long *ulp; unsigned char *ucp; } u;
+	int i;
+
+	u.vp = s;
+
+	for (i = n >> 5; i > 0; i--) {
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+	}
+
+	if (n & 1 << 4) {
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+	}
+
+	if (n & 1 << 3) {
+		*u.ulp++ = 0;
+		*u.ulp++ = 0;
+	}
+
+	if (n & 1 << 2)
+		*u.ulp++ = 0;
+
+	if (n & 1 << 1) {
+		*u.ucp++ = 0;
+		*u.ucp++ = 0;
+	}
+
+	if (n & 1)
+		*u.ucp++ = 0;
+}
+#endif
+
+void *memcpy(void *__dest, __const void *__src, size_t __n)
+{
+	int i = 0;
+	unsigned char *d = (unsigned char *)__dest, *s = (unsigned char *)__src;
+
+	for (i = __n >> 3; i > 0; i--) {
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+	}
+
+	if (__n & 1 << 2) {
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+		*d++ = *s++;
+	}
+
+	if (__n & 1 << 1) {
+		*d++ = *s++;
+		*d++ = *s++;
+	}
+
+	if (__n & 1)
+		*d++ = *s++;
+
+	return __dest;
+}
+
+/*
+ * gzip delarations
  */
 extern char input_data[];
 extern char input_data_end[];
 
 unsigned char *output_data;
+unsigned long output_ptr;
 
 unsigned long free_mem_ptr;
 unsigned long free_mem_end_ptr;
@@ -137,15 +228,15 @@ asmlinkage void __div0(void)
 	error("Attempting division by 0!");
 }
 
-extern int do_decompress(u8 *input, int len, u8 *output, void (*error)(char *x));
+extern void do_decompress(u8 *input, int len, u8 *output, void (*error)(char *x));
 
 
-void
+unsigned long
 decompress_kernel(unsigned long output_start, unsigned long free_mem_ptr_p,
 		unsigned long free_mem_ptr_end_p,
 		int arch_id)
 {
-	int ret;
+	unsigned char *tmp;
 
 	output_data		= (unsigned char *)output_start;
 	free_mem_ptr		= free_mem_ptr_p;
@@ -154,11 +245,12 @@ decompress_kernel(unsigned long output_start, unsigned long free_mem_ptr_p,
 
 	arch_decomp_setup();
 
+	tmp = (unsigned char *) (((unsigned long)input_data_end) - 4);
+	output_ptr = get_unaligned_le32(tmp);
+
 	putstr("Uncompressing Linux...");
-	ret = do_decompress(input_data, input_data_end - input_data,
-			    output_data, error);
-	if (ret)
-		error("decompressor returned an error");
-	else
-		putstr(" done, booting the kernel.\n");
+	do_decompress(input_data, input_data_end - input_data,
+			output_data, error);
+	putstr(" done, booting the kernel.\n");
+	return output_ptr;
 }
