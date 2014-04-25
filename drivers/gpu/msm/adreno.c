@@ -1152,8 +1152,8 @@ static int adreno_next_event(struct kgsl_device *device,
 			cmds[0] = cp_type3_packet(CP_NOP, 1);
 			cmds[1] = 0;
 
-			adreno_ringbuffer_issuecmds(device,
-					adreno_dev->drawctxt_active,
+			if (adreno_dev->drawctxt_active)
+					adreno_ringbuffer_issuecmds(device,
 					KGSL_CMD_FLAGS_NONE, &cmds[0], 2);
 		}
 	}
