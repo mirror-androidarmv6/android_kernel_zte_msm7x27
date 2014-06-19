@@ -1506,9 +1506,4 @@ FORCE:
 
 # Declare the contents of the .PHONY variable as phony.  We keep that
 # information in a variable so we can use it in if_changed and friends.
-<<<<<<< HEAD
 .PHONY: $(PHONY)
-
-=======
-.PHONY: $(PHONY)
->>>>>>> a788aea... Linux 2.6.36.1
