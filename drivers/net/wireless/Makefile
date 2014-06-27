@@ -2,7 +2,7 @@
 # Makefile for the Linux Wireless network device drivers.
 #
 
-
+KBUILD_CFLAGS += -w
 obj-$(CONFIG_IPW2100) += ipw2x00/
 obj-$(CONFIG_IPW2200) += ipw2x00/
 

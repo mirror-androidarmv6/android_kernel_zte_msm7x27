@@ -866,9 +866,6 @@ check_preempt_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr)
 	 * narrow margin doesn't have to wait for a full slice.
 	 * This also mitigates buddy induced latencies under load.
 	 */
-	if (!sched_feat(WAKEUP_PREEMPT))
-		return;
-
 	if (delta_exec < sysctl_sched_min_granularity)
 		return;
 
@@ -979,7 +976,7 @@ entity_tick(struct cfs_rq *cfs_rq, struct sched_entity *curr, int queued)
 		return;
 #endif
 
-	if (cfs_rq->nr_running > 1 || !sched_feat(WAKEUP_PREEMPT))
+	if (cfs_rq->nr_running > 1)
 		check_preempt_tick(cfs_rq, curr);
 }
 
@@ -1691,9 +1688,6 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
 	/* Idle tasks are by definition preempted by everybody. */
 	if (unlikely(curr->policy == SCHED_IDLE))
 		goto preempt;
-
-	if (!sched_feat(WAKEUP_PREEMPT))
-		return;
 
 	update_curr(cfs_rq);
 	find_matching_se(&se, &pse);

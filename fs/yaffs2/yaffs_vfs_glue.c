@@ -473,12 +473,6 @@ static const struct super_operations yaffs_super_ops = {
 	.put_inode = yaffs_put_inode,
 #endif
 	.put_super = yaffs_put_super,
-#ifdef YAFFS_HAS_EVICT_INODE
-	.evict_inode = yaffs_evict_inode,
-#else
-	.delete_inode = yaffs_delete_inode,
-	.clear_inode = yaffs_clear_inode,
-#endif
 	.sync_fs = yaffs_sync_fs,
 	.write_super = yaffs_write_super,
 };
@@ -486,24 +480,14 @@ static const struct super_operations yaffs_super_ops = {
 
 static  int yaffs_vfs_setattr(struct inode *inode, struct iattr *attr)
 {
-#ifdef  YAFFS_USE_SETATTR_COPY
-	setattr_copy(inode,attr);
-	return 0;
-#else
 	return inode_setattr(inode, attr);
-#endif
 
 }
 
 static  int yaffs_vfs_setsize(struct inode *inode, loff_t newsize)
 {
-#ifdef  YAFFS_USE_TRUNCATE_SETSIZE
-	truncate_setsize(inode,newsize);
-	return 0;
-#else
 	truncate_inode_pages(&inode->i_data,newsize);
 	return 0;
-#endif
 
 }
 
