@@ -572,4 +572,3 @@ XZ_EXTERN enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id)
 }
 
 #endif
-
