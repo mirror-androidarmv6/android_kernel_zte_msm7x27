@@ -88,6 +88,7 @@ struct adreno_gpudev {
 	void (*ctxt_draw_workaround)(struct adreno_device *);
 	irqreturn_t (*irq_handler)(struct adreno_device *);
 	void (*irq_control)(struct adreno_device *, int);
+	unsigned int (*irq_pending)(struct adreno_device *);
 	void * (*snapshot)(struct adreno_device *, void *, int *, int);
 };
 
