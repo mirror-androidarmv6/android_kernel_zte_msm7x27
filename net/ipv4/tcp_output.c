@@ -240,11 +240,10 @@ void tcp_select_initial_window(int __space, __u32 mss,
 	 * will be satisfied with 2.
 	 */
 	if (mss > (1 << *rcv_wscale)) {
-		int init_cwnd = 4;
-		if (mss > 1460 * 3)
-			init_cwnd = 2;
-		else if (mss > 1460)
-			init_cwnd = 3;
+		int init_cwnd = TCP_DEFAULT_INIT_RCVWND;
+	if (mss > 1460)
+			init_cwnd =
+			max_t(u32, (1460 * TCP_DEFAULT_INIT_RCVWND) / mss, 2);
 		/* when initializing use the value from init_rcv_wnd
 		 * rather than the default from above
 		 */
@@ -1016,7 +1015,8 @@ int tcp_fragment(struct sock *sk, struct sk_buff *skb, u32 len,
 	int nlen;
 	u8 flags;
 
-	BUG_ON(len > skb->len);
+	if (WARN_ON(len > skb->len))
+		return -EINVAL;
 
 	nsize = skb_headlen(skb) - len;
 	if (nsize < 0)
@@ -1805,11 +1805,13 @@ static int tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
 		tcp_event_new_data_sent(sk, skb);
 
 		tcp_minshall_update(tp, mss_now, skb);
-		sent_pkts++;
+		sent_pkts += tcp_skb_pcount(skb);
 
 		if (push_one)
 			break;
 	}
+	if (inet_csk(sk)->icsk_ca_state == TCP_CA_Recovery)
+		tp->prr_out += sent_pkts;
 
 	if (likely(sent_pkts)) {
 		tcp_cwnd_validate(sk);
@@ -2302,6 +2304,9 @@ begin_fwd:
 		if (tcp_retransmit_skb(sk, skb))
 			return;
 		NET_INC_STATS_BH(sock_net(sk), mib_idx);
+
+		if (inet_csk(sk)->icsk_ca_state == TCP_CA_Recovery)
+			tp->prr_out += tcp_skb_pcount(skb);
 
 		if (skb == tcp_write_queue_head(sk))
 			inet_csk_reset_xmit_timer(sk, ICSK_TIME_RETRANS,

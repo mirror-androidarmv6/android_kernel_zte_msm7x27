@@ -998,22 +998,20 @@ static int msm_fb_mmap(struct fb_info *info, struct vm_area_struct * vma)
 	u32 len = PAGE_ALIGN((start & ~PAGE_MASK) + info->fix.smem_len);
 	unsigned long off = vma->vm_pgoff << PAGE_SHIFT;
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)info->par;
-	if (off >= len) {
-		/* memory mapped io */
-		off -= len;
-		if (info->var.accel_flags) {
-			mutex_unlock(&info->lock);
-			return -EINVAL;
-		}
-		start = info->fix.mmio_start;
-		len = PAGE_ALIGN((start & ~PAGE_MASK) + info->fix.mmio_len);
-	}
+
+	if (!start)
+		return -EINVAL;
+
+	if ((vma->vm_end <= vma->vm_start) ||
+	    (off >= len) ||
+	    ((vma->vm_end - vma->vm_start) > (len - off)))
+		return -EINVAL;
 
 	/* Set VM flags. */
 	start &= PAGE_MASK;
-	if ((vma->vm_end - vma->vm_start + off) > len)
-		return -EINVAL;
 	off += start;
+	if (off < start)
+		return -EINVAL;
 	vma->vm_pgoff = off >> PAGE_SHIFT;
 	/* This is an IO map - tell maydump to skip this VMA */
 	vma->vm_flags |= VM_IO | VM_RESERVED;
@@ -1086,7 +1084,6 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	struct fb_fix_screeninfo *fix;
 	struct fb_var_screeninfo *var;
 	int *id;
-	int fbram_offset;
 	int remainder, remainder_mode2;
 	static int subsys_id[2] = {MSM_SUBSYSTEM_DISPLAY,
 		MSM_SUBSYSTEM_ROTATOR};
@@ -1310,7 +1307,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 #else
 	error CONFIG_FB_MSM_MDP undefined !
 #endif
-	 fbi->fbops = &msm_fb_ops;
+	fbi->fbops = &msm_fb_ops;
 	fbi->flags = FBINFO_FLAG_DEFAULT;
 	fbi->pseudo_palette = msm_fb_pseudo_palette;
 
@@ -1324,10 +1321,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	init_completion(&mfd->refresher_comp);
 	init_MUTEX(&mfd->sem);
 
-	fbram_offset = PAGE_ALIGN((int)fbram)-(int)fbram;
-	fbram += fbram_offset;
-	fbram_phys += fbram_offset;
-	fbram_size -= fbram_offset;
+	BUG_ON(!IS_ALIGNED((unsigned long)fbram, PAGE_SIZE));
 
 	if (mfd->index == 0)
 		if (fbram_size < fix->smem_len) {
@@ -1386,10 +1380,6 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 
 	if (fbi->node == 0)
 		wake_lock_init(&mdp_idle_wakelock, WAKE_LOCK_IDLE, "mdp");
-
-	fbram += fix->smem_len;
-	fbram_phys += fix->smem_len;
-	fbram_size -= fix->smem_len;
 
 	MSM_FB_INFO
 	    ("FrameBuffer[%d] %dx%d size=%d bytes is registered successfully!\n",
@@ -3405,7 +3395,7 @@ static int msm_fb_ioctl(struct fb_info *info, unsigned int cmd,
 
 			ret = copy_from_user(&grp_id, argp, sizeof(grp_id));
 			if (ret)
-				return ret;
+				goto msm_fb_ioctl_exit;
 
 			mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 			writel(grp_id, MDP_FULL_BYPASS_WORD43);
